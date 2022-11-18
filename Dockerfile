@@ -15,7 +15,7 @@ FROM openjdk:17-jdk-alpine as app
 #RUN add-apt-repository ppa:alex-p/tesseract-ocr-devel
 #RUN apt update
 RUN apk add tesseract-ocr
-RUN apt add tesseract-ocr-all
+RUN apk add tesseract-ocr-all
 
 ENV JAVA_OPTS="-Xms1G -Xmx2G"
 COPY --from=build-app /build/target/*.jar /app.jar
