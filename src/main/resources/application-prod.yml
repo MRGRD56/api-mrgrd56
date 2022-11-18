@@ -1,2 +1,3 @@
 tesseract:
-  datapath: /usr/share/tesseract-ocr/5/tessdata
+  datapath: /usr/share/tessdata
+#  datapath: /usr/share/tesseract-ocr/5/tessdata
