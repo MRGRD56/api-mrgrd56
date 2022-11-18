@@ -6,7 +6,7 @@ services:
       args:
         APP_NAME: api-mrgrd56
     ports:
-      - "9011:9011"
+      - "8080:8080"
     restart: always
     environment:
       ENV: production
