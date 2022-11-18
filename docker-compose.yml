@@ -1,0 +1,16 @@
+services:
+  backend:
+    image: api-mrgrd56
+    build:
+      context: .
+      args:
+        APP_NAME: api-mrgrd56
+    ports:
+      - "9011:9011"
+    restart: always
+    environment:
+      ENV: production
+      NODE_ENV: production
+      SPRING_PROFILES_ACTIVE: prod
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

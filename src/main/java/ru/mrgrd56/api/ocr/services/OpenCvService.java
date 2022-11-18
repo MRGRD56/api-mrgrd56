@@ -1,6 +1,9 @@
 package ru.mrgrd56.api.ocr.services;
 
-import org.opencv.core.*;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.springframework.http.MediaType;
@@ -10,10 +13,9 @@ import ru.mrgrd56.api.utils.FileResponse;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 @Service
-public class OcrService {
+public class OpenCvService {
     public Mat loadImage(byte[] bytes, boolean isGrayscale) {
         return Imgcodecs.imdecode(new MatOfByte(bytes), isGrayscale ? Imgcodecs.IMREAD_GRAYSCALE : Imgcodecs.IMREAD_UNCHANGED);
     }
@@ -26,7 +28,7 @@ public class OcrService {
 
     public FileResponse matToResponse(Mat mat) {
         var bytes = matToBytes(mat);
-        return FileResponse.inline(bytes, MediaType.IMAGE_PNG);
+        return FileResponse.inline(bytes, MediaType.IMAGE_PNG, "image.png");
     }
 
     public Mat threshold(Mat image, double threshold, double maxval, ThresholdType type) {

@@ -5,8 +5,13 @@ import org.springframework.lang.NonNull;
 
 public class FileResponse extends ResponseEntity<byte[]> {
 
+    private final MediaType mime;
+    private final String fileName;
+
     private FileResponse(@NonNull byte[] file, MediaType mime, boolean isDownloadable, String fileName) {
         super(file, getHeaders(file, mime, isDownloadable, fileName), HttpStatus.OK);
+        this.mime = mime;
+        this.fileName = fileName;
     }
 
     public static FileResponse inline(@NonNull byte[] file, MediaType mime) {
@@ -23,6 +28,14 @@ public class FileResponse extends ResponseEntity<byte[]> {
 
     public static FileResponse attachment(@NonNull byte[] file, MediaType mime, String fileName) {
         return new FileResponse(file, mime, true, fileName);
+    }
+
+    public MediaType getMime() {
+        return mime;
+    }
+
+    public String getFileName() {
+        return fileName;
     }
 
     private static HttpHeaders getHeaders(@NonNull byte[] file, MediaType mime, boolean isDownloadable, String fileName) {
