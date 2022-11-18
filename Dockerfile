@@ -10,12 +10,12 @@ RUN mvn dependency:go-offline dependency:resolve-plugins -B
 ADD . .
 RUN mvn clean package
 
-FROM openjdk:17-jdk-oracle as app
+FROM openjdk:17-jdk-alpine as app
 
-RUN add-apt-repository ppa:alex-p/tesseract-ocr-devel
-RUN apt update
-RUN apt install -y tesseract-ocr
-RUN apt install -y tesseract-ocr-all
+#RUN add-apt-repository ppa:alex-p/tesseract-ocr-devel
+#RUN apt update
+RUN apk add tesseract-ocr
+RUN apt add tesseract-ocr-all
 
 ENV JAVA_OPTS="-Xms1G -Xmx2G"
 COPY --from=build-app /build/target/*.jar /app.jar
