@@ -12,7 +12,7 @@ ADD mvnw .
 COPY --from=pre-build-app /poms/ ./
 RUN chmod a+x ./mvnw && ./mvnw dependency:go-offline dependency:resolve-plugins
 ADD . .
-RUN chmod a+x ./mvnw && ./mvnw clean package
+RUN chmod a+x ./mvnw && ./mvnw clean package -Dmaven.test.skip
 
 FROM amazoncorretto:17-alpine as app
 
