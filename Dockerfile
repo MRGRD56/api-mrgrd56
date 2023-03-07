@@ -13,7 +13,7 @@ RUN chmod a+x ./mvnw
 COPY --from=pre-build-app /poms/ ./
 RUN ./mvnw -B -e -C -T 1C -npu -llr dependency:go-offline dependency:resolve-plugins
 ADD . .
-RUN ./mvnw -B -e -npu -llr clean package
+RUN ./mvnw clean package
 
 FROM amazoncorretto:17-alpine as app
 
