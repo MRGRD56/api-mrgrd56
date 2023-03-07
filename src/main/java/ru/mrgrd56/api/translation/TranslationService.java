@@ -23,7 +23,7 @@ public class TranslationService {
     }
 
     public String translate(String translatorName, String from, String to, String text) {
-        Translator translator = translatorProvider.getTranslator(translatorName);
+        Translator translator = translatorProvider.get(translatorName);
         if (translator == null) {
             throw new NotFoundException("Translator not found");
         }
