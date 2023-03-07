@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
+import java.util.Objects;
 
 @RestController
 public class HomeController {
@@ -30,7 +31,7 @@ public class HomeController {
     }
 
     @GetMapping(value = "time/epoch", produces = MediaType.TEXT_PLAIN_VALUE)
-    public long getTimeAsEpochMillis() {
-        return Instant.now().toEpochMilli();
+    public String getTimeAsEpochMillis() {
+        return Objects.toString(Instant.now().toEpochMilli());
     }
 }
