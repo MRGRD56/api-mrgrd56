@@ -6,7 +6,7 @@ RUN mkdir -p /poms && find . -name pom.xml -exec cp --parents {} /poms \;
 FROM ubuntu:22.04 as build-app
 WORKDIR /build
 
-RUN apt update && apt install openjdk-17-jdk openjdk-17-jre
+RUN apt update && apt install -y openjdk-17-jdk openjdk-17-jre
 
 ADD .mvn ./.mvn
 ADD mvnw .
@@ -22,8 +22,8 @@ FROM ubuntu:22.04 as app
 
 RUN add-apt-repository ppa:alex-p/tesseract-ocr-devel
 RUN apt update
-RUN apt install tesseract-ocr && \
-    apt install tesseract-ocr-rus tesseract-ocr-jpn tesseract-ocr-chi_sim tesseract-ocr-chi_tra tesseract-ocr-spa tesseract-ocr-hin tesseract-ocr-ben tesseract-ocr-por tesseract-ocr-data-vie tesseract-ocr-deu tesseract-ocr-fra tesseract-ocr-ita tesseract-ocr-bel tesseract-ocr-ukr tesseract-ocr-kor
+RUN apt install -y tesseract-ocr && \
+    apt install -y tesseract-ocr-rus tesseract-ocr-jpn tesseract-ocr-chi_sim tesseract-ocr-chi_tra tesseract-ocr-spa tesseract-ocr-hin tesseract-ocr-ben tesseract-ocr-por tesseract-ocr-data-vie tesseract-ocr-deu tesseract-ocr-fra tesseract-ocr-ita tesseract-ocr-bel tesseract-ocr-ukr tesseract-ocr-kor
 
 ENV JAVA_OPTS="-Xms1G -Xmx2G"
 COPY --from=build-app /build/target/*.jar /app.jar
