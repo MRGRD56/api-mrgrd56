@@ -23,7 +23,7 @@ public class StringMemoryMappedStorageController {
         return storage.set(key, value);
     }
 
-    @RequestMapping(value = "{key}/add/{value}", produces = MediaType.TEXT_PLAIN_VALUE)
+    @RequestMapping(value = {"{key}/add/{value}", "{key}/create/{value}"}, produces = MediaType.TEXT_PLAIN_VALUE)
     public String addValue(@PathVariable String key, @PathVariable String value) {
         return storage.add(key, value);
     }
