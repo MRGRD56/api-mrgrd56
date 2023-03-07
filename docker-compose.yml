@@ -12,6 +12,5 @@ services:
       ENV: production
       NODE_ENV: production
       SPRING_PROFILES_ACTIVE: prod
-      TESSDATA_PREFIX: /usr/share/tesseract-ocr/5/tessdata
     extra_hosts:
       - "host.docker.internal:host-gateway"
