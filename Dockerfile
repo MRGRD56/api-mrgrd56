@@ -8,13 +8,11 @@ WORKDIR /build
 
 ADD .mvn ./.mvn
 ADD mvnw .
-RUN chmod a+x ./mvnw
 
 COPY --from=pre-build-app /poms/ ./
-RUN ./mvnw dependency:go-offline dependency:resolve-plugins
+RUN chmod a+x ./mvnw && ./mvnw dependency:go-offline dependency:resolve-plugins
 ADD . .
-RUN chmod a+x ./mvnw
-RUN ./mvnw clean package
+RUN chmod a+x ./mvnw && ./mvnw clean package
 
 FROM amazoncorretto:17-alpine as app
 
