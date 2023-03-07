@@ -1,7 +1,7 @@
 FROM ubuntu:22.04 as pre-build-app
 
 RUN apt update && apt install -y openjdk-17-jdk openjdk-17-jre
-RUN apt install software-properties-common
+RUN apt install -y software-properties-common
 RUN add-apt-repository ppa:alex-p/tesseract-ocr-devel
 RUN apt update
 RUN apt install -y tesseract-ocr && \
