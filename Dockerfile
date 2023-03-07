@@ -5,10 +5,15 @@ RUN mkdir -p /poms && find . -name pom.xml -exec cp --parents {} /poms \;
 
 FROM amazoncorretto:17-alpine as build-app
 WORKDIR /build
+
+ADD .mvn ./.mvn
+ADD mvnw .
+RUN chmod a+x ./mvnw
+
 COPY --from=pre-build-app /poms/ ./
-RUN mvn dependency:go-offline dependency:resolve-plugins -B
+RUN ./mvnw dependency:go-offline dependency:resolve-plugins -B
 ADD . .
-RUN mvn clean package
+RUN ./mvnw clean package
 
 FROM amazoncorretto:17-alpine as app
 
