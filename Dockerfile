@@ -1,9 +1,9 @@
-FROM busybox as pre-build-app
+FROM amazoncorretto:17-alpine as pre-build-app
 WORKDIR /src/
 COPY . .
 RUN mkdir -p /poms && find . -name pom.xml -exec cp --parents {} /poms \;
 
-FROM maven:3.8.4-openjdk-17-slim as build-app
+FROM amazoncorretto:17-alpine as build-app
 WORKDIR /build
 COPY --from=pre-build-app /poms/ ./
 RUN mvn dependency:go-offline dependency:resolve-plugins -B
