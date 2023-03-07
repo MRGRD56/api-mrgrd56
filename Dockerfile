@@ -1,4 +1,9 @@
 FROM ubuntu:22.04 as pre-build-app
+WORKDIR /src/
+COPY . .
+RUN mkdir -p /poms && find . -name pom.xml -exec cp --parents {} /poms \;
+
+FROM ubuntu:22.04 as app
 
 RUN apt update && apt install -y openjdk-17-jdk openjdk-17-jre
 RUN apt install -y software-properties-common
@@ -11,7 +16,6 @@ WORKDIR /src/
 COPY . .
 RUN mkdir -p /poms && find . -name pom.xml -exec cp --parents {} /poms \;
 
-FROM ubuntu:22.04 as build-app
 WORKDIR /build
 
 ADD .mvn ./.mvn
@@ -22,15 +26,6 @@ RUN chmod a+x ./mvnw && ./mvnw dependency:go-offline dependency:resolve-plugins
 ADD . .
 RUN chmod a+x ./mvnw && ./mvnw clean package -Dmaven.test.skip
 
-FROM ubuntu:22.04 as app
-
-#RUN apk add cmake g++ wget unzip;
-
 ENV JAVA_OPTS="-Xms1G -Xmx2G"
-COPY --from=build-app /build/target/*.jar /app.jar
+RUN cp /build/target/*.jar /app.jar
 CMD ["sh", "-c", "eval exec java -server ${JAVA_OPTS} -jar app.jar"]
-
-#*
-#* If you need ICU with non-English locales and legacy charset support, install
-#* package icu-data-full.
-#*
