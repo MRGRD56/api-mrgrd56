@@ -13,7 +13,7 @@ public class StringMemoryMappedStorageController {
         this.storage = storage;
     }
 
-    @RequestMapping(value = {"{key}", "{key}/get"}, produces = MediaType.TEXT_PLAIN_VALUE)
+    @RequestMapping(value = {"{key}/get", "{key}"}, produces = MediaType.TEXT_PLAIN_VALUE)
     public String getValue(@PathVariable String key) {
         return storage.get(key);
     }
