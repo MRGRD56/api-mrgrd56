@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
+import java.util.Map;
 
 @RestController
 public class HomeController {
@@ -17,9 +18,10 @@ public class HomeController {
     @GetMapping("ip")
     public String getIpAddress(
             @RequestHeader(value = "X-Real-IP", required = false) String realIp,
+            @RequestHeader Map<String, String> headers,
             HttpServletRequest request) {
-        log.info("/ip headers {}", request.getHeaderNames());
-        log.info("/ip header X-Real-IP {}", request.getHeaders("X-Real-IP"));
+        log.info("/ip headers {}", headers);
+        log.info("/ip header X-Real-IP {}", request.getHeader("X-Real-IP"));
 
         if (StringUtils.isNotBlank(realIp)) {
             return realIp;
