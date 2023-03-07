@@ -10,7 +10,7 @@ RUN mvn dependency:go-offline dependency:resolve-plugins -B
 ADD . .
 RUN mvn clean package
 
-FROM openjdk:17-jdk-alpine as app
+FROM amazoncorretto:17-alpine as app
 
 #RUN apk add cmake g++ wget unzip;
 
