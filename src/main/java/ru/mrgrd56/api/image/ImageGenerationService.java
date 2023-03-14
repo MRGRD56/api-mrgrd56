@@ -9,12 +9,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 @Service
-public class ImageService {
+public class ImageGenerationService {
     public byte[] generateFilledImage(
             Color color,
-            Dimension size
+            Dimension size,
+            Integer borderRadius
     ) {
         validateSize(size);
+        validateBorderRadius(borderRadius);
 
         int width = size.width;
         int height = size.height;
@@ -22,7 +24,11 @@ public class ImageService {
         var image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = image.createGraphics();
         graphics.setColor(color);
-        graphics.fillRect(0, 0, width, height);
+        if (borderRadius == null) {
+            graphics.fillRect(0, 0, width, height);
+        } else {
+            graphics.fillRoundRect(0, 0, width, height, borderRadius, borderRadius);
+        }
 
         var result = new ByteArrayOutputStream();
         try {
@@ -54,12 +60,22 @@ public class ImageService {
             return new Dimension(width, height);
         }
 
-        throw new IllegalArgumentException("Invalid size provided");
+        throw new IllegalArgumentException("Invalid size (s) provided");
     }
 
     private void validateSize(Dimension dimension) throws IllegalArgumentException {
         if (dimension.width <= 0 || dimension.width > 3000 || dimension.height < 0 || dimension.height > 3000) {
-            throw new IllegalArgumentException("Invalid size provided: both sides must be in range [1; 3000]");
+            throw new IllegalArgumentException("Invalid size (s) provided: both sides must be in range [1; 3000]");
+        }
+    }
+
+    private void validateBorderRadius(Integer borderRadius) {
+        if (borderRadius == null) {
+            return;
+        }
+
+        if (borderRadius < 0) {
+            throw new IllegalArgumentException("Invalid borderRadius (r) provided: the value must not be less than 0");
         }
     }
 }
