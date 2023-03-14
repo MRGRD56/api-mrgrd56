@@ -1,5 +1,7 @@
 package ru.mrgrd56.api.image;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
@@ -7,14 +9,27 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class ImageGenerationService {
+    private final Cache<String, byte[]> filledImagesCache = Caffeine.newBuilder()
+            .maximumSize(512)
+            .expireAfterAccess(1, TimeUnit.HOURS)
+            .build();
+
     public byte[] generateFilledImage(
             Color color,
             Dimension size,
             Integer borderRadius
     ) {
+        var hash = color + "/" + size + "/" + borderRadius;
+
+        var cached = filledImagesCache.getIfPresent(hash);
+        if (cached != null) {
+            return cached;
+        }
+
         validateSize(size);
         validateBorderRadius(borderRadius);
 
@@ -30,13 +45,20 @@ public class ImageGenerationService {
             graphics.fillRoundRect(0, 0, width, height, borderRadius, borderRadius);
         }
 
-        var result = new ByteArrayOutputStream();
+        var output = new ByteArrayOutputStream();
         try {
-            ImageIO.write(image, "png", result);
+            ImageIO.write(image, "png", output);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return result.toByteArray();
+
+        byte[] result = output.toByteArray();
+
+        if (width <= 512 && height <= 512) {
+            filledImagesCache.put(hash, result);
+        }
+
+        return result;
     }
 
     public Color parseColor(String input) throws IllegalArgumentException {
