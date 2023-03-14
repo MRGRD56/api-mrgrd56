@@ -40,7 +40,7 @@ public class ImageGenerationService {
     }
 
     public Color parseColor(String input) throws IllegalArgumentException {
-        var result = Color.getColor(input);
+        var result = Color.decode(input);
         if (result == null) {
             throw new IllegalArgumentException("Invalid color provided");
         }
