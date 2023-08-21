@@ -177,6 +177,9 @@ public class ProxyService {
         if (CollectionUtils.isNotEmpty(referers)) {
             springResponseHeaders.addAll("Access-Control-Allow-Origin", referers);
         }
+
+        springResponseHeaders.add("Transfer-Encoding", "chunked");
+
         return springResponseHeaders;
     }
 
