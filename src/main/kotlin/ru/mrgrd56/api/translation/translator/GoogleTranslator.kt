@@ -7,8 +7,6 @@ import org.springframework.http.HttpMethod
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.util.UriComponentsBuilder
-import java.util.stream.Collectors
-import java.util.stream.StreamSupport
 
 @Component
 class GoogleTranslator : Translator {
@@ -42,9 +40,9 @@ class GoogleTranslator : Translator {
         ).body
 
         return response?.let {
-            StreamSupport.stream(it.elements().next().spliterator(), false)
+            it.elements().next().asSequence()
                 .map { node: JsonNode -> node.elements().next().asText() }
-                .collect(Collectors.joining(""))
+                .joinToString("")
         }
     }
     companion object {

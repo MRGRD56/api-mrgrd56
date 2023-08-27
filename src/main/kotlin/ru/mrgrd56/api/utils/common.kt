@@ -6,5 +6,5 @@ inline infix fun <T> T?.ifNull(action: () -> Unit) {
     }
 }
 
-inline infix fun <C, R> C?.ifNullOrBlank(defaultValue: () -> R): R where C : R, R : CharSequence =
+inline infix fun <C, R> C?.ifNullOrBlank(defaultValue: () -> R): R where R : CharSequence, C : R =
     if (isNullOrBlank()) defaultValue() else this

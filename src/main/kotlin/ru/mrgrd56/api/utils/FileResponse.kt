@@ -1,7 +1,6 @@
 package ru.mrgrd56.api.utils
 
 import org.springframework.http.*
-import org.springframework.lang.NonNull
 
 class FileResponse private constructor(
     file: ByteArray,
@@ -11,19 +10,18 @@ class FileResponse private constructor(
 ) : ResponseEntity<ByteArray?>(file, getHeaders(file, mime, isDownloadable, fileName), HttpStatus.OK) {
 
     companion object {
-        fun inline(@NonNull file: ByteArray, mime: MediaType): FileResponse {
+        fun inline(file: ByteArray, mime: MediaType): FileResponse {
             return FileResponse(file, mime, false, null)
         }
 
-        @JvmStatic
-        fun inline(@NonNull file: ByteArray, mime: MediaType, fileName: String?): FileResponse =
+        fun inline(file: ByteArray, mime: MediaType, fileName: String?): FileResponse =
             FileResponse(file, mime, false, fileName)
 
-        fun attachment(@NonNull file: ByteArray, mime: MediaType): FileResponse =
-            FileResponse(file, mime, true, null)
-
-        fun attachment(@NonNull file: ByteArray, mime: MediaType, fileName: String?): FileResponse =
+        fun attachment(file: ByteArray, mime: MediaType, fileName: String?): FileResponse =
             FileResponse(file, mime, true, fileName)
+
+        fun attachment(file: ByteArray, mime: MediaType): FileResponse =
+            FileResponse(file, mime, true, null)
 
         private fun getHeaders(
             file: ByteArray,

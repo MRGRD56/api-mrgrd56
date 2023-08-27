@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service
 import ru.mrgrd56.api.ocr.model.ThresholdType
 import ru.mrgrd56.api.utils.FileResponse
 import ru.mrgrd56.api.utils.FileResponse.Companion.inline
-import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 
@@ -51,11 +50,7 @@ class OpenCvService {
         val hierarchy = Mat()
         Imgproc.findContours(result, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE)
         val matOfPoint2f = MatOfPoint2f()
-        matOfPoint2f.fromList(
-            contours.stream()
-                .flatMap { a: MatOfPoint -> Arrays.stream(a.toArray()) }
-                .toList()
-        )
+        matOfPoint2f.fromList(contours.flatMap { a: MatOfPoint -> a.toList() })
         val minAreaRectRotated = Imgproc.minAreaRect(matOfPoint2f)
         val minAreaRect = minAreaRectRotated.boundingRect()
         val padding = 3
