@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 import ru.mrgrd56.api.utils.ifNullOrBlank
 import java.time.Instant
-import java.util.*
 import javax.servlet.http.HttpServletRequest
 
 @RestController
@@ -25,5 +24,5 @@ class HomeController {
     fun getTimeAsIsoString(): String = Instant.now().toString()
 
     @GetMapping(value = ["time/epoch"], produces = [MediaType.TEXT_PLAIN_VALUE])
-    fun getTimeAsEpochMillis(): String = Objects.toString(Instant.now().toEpochMilli())
+    fun getTimeAsEpochMillis(): String = Instant.now().toEpochMilli().toString()
 }
