@@ -9,14 +9,14 @@ import org.springframework.web.bind.annotation.RestController
 import ru.mrgrd56.api.mock.model.MockItemDto
 import ru.mrgrd56.api.mock.model.MockOptions
 import ru.mrgrd56.api.mock.model.PageDto
-import ru.mrgrd56.api.mock.services.MockService
+import ru.mrgrd56.api.mock.services.ReadOnlyMockService
 import ru.mrgrd56.api.mock.utils.mock
 import java.util.*
 
 @RestController
-@RequestMapping("mock")
+@RequestMapping("mock/ro")
 class MockController(
-    private val mockService: MockService
+    private val mockService: ReadOnlyMockService
 ) {
     @GetMapping
     suspend fun getItemsPage(pageable: Pageable, mockOptions: MockOptions) = mock<PageDto<MockItemDto>>(mockOptions) {

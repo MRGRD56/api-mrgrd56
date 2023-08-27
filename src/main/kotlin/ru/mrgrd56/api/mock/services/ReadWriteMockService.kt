@@ -12,10 +12,37 @@ import kotlin.math.ceil
 
 
 @Service
-class MockService {
+@Deprecated("",
+    replaceWith = ReplaceWith("ru.mrgrd56.api.mock.services.ReadOnlyMockService")
+)
+class ReadWriteMockService : ReadableMockService<UUID, MockItemDto> {
     private val faker = Faker(Locale.US)
 
     private val items = LinkedHashMap<UUID, MockItemDto>(350)
+
+    override fun getItemsPage(pageable: Pageable): PageDto<MockItemDto> {
+        val (totalItemsCount, pageItems) = synchronized(items) {
+            items.values.size to items.values.asSequence()
+                .drop(pageable.pageSize * pageable.pageNumber)
+                .take(pageable.pageSize)
+                .toList()
+        }
+
+        return PageDto(
+            items = pageItems,
+            pageNumber = pageable.pageNumber,
+            totalPages = ceil(totalItemsCount.toDouble() / pageable.pageSize).toInt(),
+            totalItems = totalItemsCount.toLong()
+        )
+    }
+
+    override fun getAllItems(): List<MockItemDto> {
+        return synchronized(items) { items.values.toList() }
+    }
+
+    override fun getItemById(id: UUID): MockItemDto? {
+        return synchronized(items) { items[id] }
+    }
 
     @PostConstruct
     private fun initializeItems() {
@@ -37,30 +64,6 @@ class MockService {
                 items[item.id] = item
             }
         }
-    }
-
-    fun getItemsPage(pageable: Pageable): PageDto<MockItemDto> {
-        val (totalItemsCount, pageItems) = synchronized(items) {
-            items.values.size to items.values.asSequence()
-                .drop(pageable.pageSize * pageable.pageNumber)
-                .take(pageable.pageSize)
-                .toList()
-        }
-
-        return PageDto(
-            items = pageItems,
-            pageNumber = pageable.pageNumber,
-            totalPages = ceil(totalItemsCount.toDouble() / pageable.pageSize).toInt(),
-            totalItems = totalItemsCount.toLong()
-        )
-    }
-
-    fun getAllItems(): List<MockItemDto> {
-        return synchronized(items) { items.values.toList() }
-    }
-
-    fun getItemById(id: UUID): MockItemDto? {
-        return synchronized(items) { items[id] }
     }
 
     // TODO add CRUD operations
