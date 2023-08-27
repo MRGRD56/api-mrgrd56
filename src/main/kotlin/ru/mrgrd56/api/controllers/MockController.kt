@@ -2,6 +2,7 @@ package ru.mrgrd56.api.controllers
 
 import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
+import org.springframework.http.ResponseEntity.ok
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -20,18 +21,18 @@ class MockController(
 ) {
     @GetMapping
     suspend fun getItemsPage(pageable: Pageable, mockOptions: MockOptions) = mock<PageDto<MockItemDto>>(mockOptions) {
-        ResponseEntity.ok(mockService.getItemsPage(pageable))
+        ok(mockService.getItemsPage(pageable))
     }
 
     @GetMapping("all")
     suspend fun getAllItems(mockOptions: MockOptions) = mock<List<MockItemDto>>(mockOptions) {
-        ResponseEntity.ok(mockService.getAllItems())
+        ok(mockService.getAllItems())
     }
 
     @GetMapping("{id}")
     suspend fun getItemById(@PathVariable("id") id: UUID, mockOptions: MockOptions) = mock<MockItemDto>(mockOptions) {
         mockService.getItemById(id)?.let {
-            return@mock ResponseEntity.ok(it)
+            return@mock ok(it)
         }
 
         ResponseEntity.notFound().build()
