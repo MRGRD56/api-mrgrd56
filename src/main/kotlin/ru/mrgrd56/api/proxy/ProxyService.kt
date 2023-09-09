@@ -19,6 +19,8 @@ import javax.servlet.http.HttpServletRequest
 import io.netty.handler.codec.http.HttpHeaders as NettyHttpHeaders
 import org.springframework.http.HttpHeaders as SpringHttpHeaders
 
+private const val X_MRGRD56_PROXY_RESPONSE = "X-MRGRD56-Proxy-Response"
+
 @Service
 class ProxyService(private val asyncHttpClient: AsyncHttpClient) {
     fun proxyRequest(
@@ -34,7 +36,7 @@ class ProxyService(private val asyncHttpClient: AsyncHttpClient) {
             }
 
             val requestHeaders: SpringHttpHeaders = getRequestHeaders(requestHeadersIn)
-            val referers: List<String>? = getRequestReferers(requestHeaders)
+            val requestOrigins: List<String> = getRequestOrigins(requestHeaders)
 
             val request = RequestBuilder()
                 .setMethod(requestIn.method)
@@ -51,7 +53,8 @@ class ProxyService(private val asyncHttpClient: AsyncHttpClient) {
             sendProxiedRequest(request, responseStatusQueue, responseHeadersQueue, pipedOutputStream)
             val streamingResponseBody = createStreamingResponseBody(pipedInputStream)
             val responseStatus = Objects.requireNonNull(responseStatusQueue.take())
-            val springResponseHeaders = getResponseHeaders(responseHeadersQueue, requestedHost, proxyPath, referers)
+            val springResponseHeaders =
+                getResponseHeaders(responseHeadersQueue.take(), requestedHost, proxyPath, requestOrigins)
             ResponseEntity.status(responseStatus.statusCode)
                 .headers(springResponseHeaders)
                 .body(streamingResponseBody)
@@ -134,26 +137,37 @@ class ProxyService(private val asyncHttpClient: AsyncHttpClient) {
 
     private fun createStreamingResponseBody(pipedInputStream: PipedInputStream): StreamingResponseBody {
         return StreamingResponseBody { outputStream: OutputStream ->
-            val bufferedOutputStream = BufferedOutputStream(outputStream)
-            pipedInputStream.transferTo(bufferedOutputStream)
-            bufferedOutputStream.flush()
+            val buffer = ByteArray(8192)
+            var bytesRead: Int
+            while (pipedInputStream.read(buffer, 0, buffer.size).also { bytesRead = it } != -1) {
+                outputStream.write(buffer, 0, bytesRead)
+                outputStream.flush()
+            }
+
             outputStream.close()
         }
     }
 
+    val ignoredHeaders = hashSetOf("content-length", "transfer-encoding", "connection")
+
     @Throws(InterruptedException::class)
     private fun getResponseHeaders(
-        responseHeadersQueue: BlockingQueue<NettyHttpHeaders>,
+        responseHeaders: NettyHttpHeaders,
         requestedHost: String,
         proxyPath: String,
-        referers: List<String>?
+        requestOrigins: List<String>
     ): SpringHttpHeaders {
-        val responseHeaders = responseHeadersQueue.take()
         val springResponseHeaders = SpringHttpHeaders()
         for (header in responseHeaders.names()) {
+            val headerName = header.lowercase()
+
+            if (headerName in ignoredHeaders) {
+                continue
+            }
+
             var headerValues = responseHeaders.getAll(header)
 
-            if (header.equals("location", ignoreCase = true)) {
+            if (headerName == "location") {
                 headerValues = headerValues.map { location: String ->
                     UriComponentsBuilder.fromUriString(location).build()
                         .let { locationComponents: UriComponents ->
@@ -176,22 +190,28 @@ class ProxyService(private val asyncHttpClient: AsyncHttpClient) {
             springResponseHeaders.addAll(header, headerValues)
         }
 
-        if (!referers.isNullOrEmpty()) {
-            springResponseHeaders.addAll("Access-Control-Allow-Origin", referers)
+        if (requestOrigins.isNotEmpty()) {
+            springResponseHeaders["Access-Control-Allow-Origin"] = requestOrigins
         }
 
-        springResponseHeaders.add("Transfer-Encoding", "chunked")
         return springResponseHeaders
     }
 
-    private fun getRequestReferers(requestHeaders: SpringHttpHeaders): List<String>? {
-        val referers = requestHeaders["referer"] ?: requestHeaders["origin"]
+    private fun getRequestOrigins(requestHeaders: SpringHttpHeaders): List<String> {
+        val referers = sequence(requestHeaders["referer"]) + sequence(requestHeaders["origin"])
 
-        return referers?.map {
-            UriComponentsBuilder.fromUriString(it)
-                .replacePath("")
-                .toUriString()
-        }
+        return referers
+            .filter { !it.isNullOrEmpty() }
+            .map {
+                UriComponentsBuilder.fromUriString(it)
+                    .replacePath(null)
+                    .replaceQuery(null)
+                    .fragment(null)
+                    .toUriString()
+                    .ifEmpty { it }
+            }
+            .take(1)
+            .toList()
     }
 
     private fun getRequestHeaders(requestHeadersIn: SpringHttpHeaders): SpringHttpHeaders {
@@ -217,8 +237,8 @@ class ProxyService(private val asyncHttpClient: AsyncHttpClient) {
             .path(requestIn.servletPath)
             .toUriString()
     }
+}
 
-    companion object {
-        private const val X_MRGRD56_PROXY_RESPONSE = "X-MRGRD56-Proxy-Response"
-    }
+private fun <T> sequence(items: Iterable<T>?): Sequence<T> {
+    return items?.asSequence() ?: emptySequence()
 }

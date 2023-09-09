@@ -11,9 +11,9 @@ import kotlin.math.ceil
 
 
 @Service
-class ReadOnlyMockService : ReadableMockService<UUID, MockItemDto> {
-    private val faker = Faker(Locale.US)
-
+class ReadOnlyMockService(
+    private val faker: Faker
+) : ReadableMockService<UUID, MockItemDto> {
     private val items = createItems()
 
     override fun getItemsPage(pageable: Pageable): PageDto<MockItemDto> {

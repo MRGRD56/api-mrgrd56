@@ -4,10 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.github.javafaker.Faker
 import org.asynchttpclient.AsyncHttpClient
 import org.asynchttpclient.Dsl
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import java.util.*
 import javax.annotation.PreDestroy
 
 @Configuration
@@ -29,4 +31,7 @@ class AppConfig {
     fun closeClient() {
         asyncHttpClient.close()
     }
+
+    @Bean
+    fun faker() = Faker(Locale.US)
 }

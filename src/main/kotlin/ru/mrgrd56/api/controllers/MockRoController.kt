@@ -16,7 +16,7 @@ import java.util.*
 
 @RestController
 @RequestMapping("mock/ro")
-class MockController(
+class MockRoController(
     private val mockService: ReadOnlyMockService
 ) {
     @GetMapping
