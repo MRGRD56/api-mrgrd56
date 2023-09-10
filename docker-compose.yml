@@ -14,4 +14,4 @@ services:
       SPRING_PROFILES_ACTIVE: prod
     extra_hosts:
       - "host.docker.internal:host-gateway"
-      - "api.mrgrd56.ru:localhost:8080"
+      - "api-mrgrd56:localhost"

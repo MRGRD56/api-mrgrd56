@@ -24,9 +24,11 @@ private const val X_MRGRD56_PROXY_RESPONSE = "X-MRGRD56-Proxy-Response"
 @Service
 class ProxyService(private val asyncHttpClient: AsyncHttpClient) {
     fun proxyRequest(
-        url: String, requestHeadersIn: SpringHttpHeaders, requestIn: HttpServletRequest
+        originalUrl: String, requestHeadersIn: SpringHttpHeaders, requestIn: HttpServletRequest
     ): ResponseEntity<StreamingResponseBody> {
         return try {
+            val url: String = prepareTargetUrl(originalUrl)
+
             val proxyPath: String = getProxyPath(requestIn)
             val requestedHost: String = getRequestedHost(url)
             val errorResponse: ResponseEntity<StreamingResponseBody>? = validateUrl(url, requestIn)
@@ -125,7 +127,7 @@ class ProxyService(private val asyncHttpClient: AsyncHttpClient) {
                 .body(ofString("Invalid url specified"))
         }
 
-        if (!proxiedUri.host!!.equals("api.mrgrd56.ru", ignoreCase = true) && (proxiedUri.port != -1 && proxiedUri.port != 443)) {
+        if (!proxiedUri.host!!.equals("api-mrgrd56", ignoreCase = true) || proxiedUri.port != 8080) {
             val proxiedAddress = InetAddress.getByName(proxiedUri.host)
 
             if (proxiedAddress.isSiteLocalAddress || proxiedAddress.isLoopbackAddress) {
@@ -239,6 +241,20 @@ class ProxyService(private val asyncHttpClient: AsyncHttpClient) {
             .port(requestIn.serverPort)
             .path(requestIn.servletPath)
             .toUriString()
+    }
+
+    private fun prepareTargetUrl(url: String): String {
+        val uriComponents = UriComponentsBuilder.fromUriString(url).build()
+
+        if ("api.mrgrd56.ru".equals(uriComponents.host, ignoreCase = true)) {
+            return UriComponentsBuilder.fromUriString(url)
+                .scheme("http")
+                .host("api-mrgrd56")
+                .port(8080)
+                .toUriString()
+        }
+
+        return url
     }
 }
 
