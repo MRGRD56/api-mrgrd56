@@ -1,6 +1,7 @@
 package ru.mrgrd56.api.proxy
 
 import org.asynchttpclient.*
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
@@ -23,9 +24,13 @@ private const val X_MRGRD56_PROXY_RESPONSE = "X-MRGRD56-Proxy-Response"
 
 @Service
 class ProxyService(private val asyncHttpClient: AsyncHttpClient) {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     fun proxyRequest(
         originalUrl: String, requestHeadersIn: SpringHttpHeaders, requestIn: HttpServletRequest
     ): ResponseEntity<StreamingResponseBody> {
+        log.info("Proxying: [{}]", originalUrl)
+
         return try {
             val url: String = prepareTargetUrl(originalUrl)
 
