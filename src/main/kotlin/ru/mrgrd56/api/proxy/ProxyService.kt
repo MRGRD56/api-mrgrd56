@@ -1,7 +1,6 @@
 package ru.mrgrd56.api.proxy
 
 import org.asynchttpclient.*
-import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
@@ -9,6 +8,8 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import org.springframework.web.util.UriComponents
 import org.springframework.web.util.UriComponentsBuilder
 import ru.mrgrd56.api.utils.ValueStreamingResponseBody.ofString
+import ru.mrgrd56.api.utils.logger
+import ru.mrgrd56.api.utils.scoped
 import java.io.*
 import java.net.InetAddress
 import java.net.UnknownHostException
@@ -24,12 +25,14 @@ private const val X_MRGRD56_PROXY_RESPONSE = "X-MRGRD56-Proxy-Response"
 
 @Service
 class ProxyService(private val asyncHttpClient: AsyncHttpClient) {
-    private val log = LoggerFactory.getLogger(javaClass)
+    private val log = logger(javaClass)
 
     fun proxyRequest(
         originalUrl: String, requestHeadersIn: SpringHttpHeaders, requestIn: HttpServletRequest
     ): ResponseEntity<StreamingResponseBody> {
-        log.info("Proxying: [{}]", originalUrl)
+        val logger = log.scoped("proxy:")
+
+        logger.info("request [{}]", originalUrl)
 
         return try {
             val url: String = prepareTargetUrl(originalUrl)
@@ -62,10 +65,15 @@ class ProxyService(private val asyncHttpClient: AsyncHttpClient) {
             val responseStatus = Objects.requireNonNull(responseStatusQueue.take())
             val springResponseHeaders =
                 getResponseHeaders(responseHeadersQueue.take(), requestedHost, proxyPath, requestOrigins)
+
+            logger.info("response: [{}]\nheaders: {}", responseStatus, springResponseHeaders)
+
             ResponseEntity.status(responseStatus.statusCode)
                 .headers(springResponseHeaders)
                 .body(streamingResponseBody)
         } catch (e: Exception) {
+            logger.error("error proxying request: {}", e.message, e)
+
             ResponseEntity.internalServerError()
                 .header(X_MRGRD56_PROXY_RESPONSE, requestIn.serverName)
                 .body(StreamingResponseBody { outputStream: OutputStream? ->
