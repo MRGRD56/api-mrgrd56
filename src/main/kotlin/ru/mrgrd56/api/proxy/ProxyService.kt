@@ -125,11 +125,14 @@ class ProxyService(private val asyncHttpClient: AsyncHttpClient) {
                 .body(ofString("Invalid url specified"))
         }
 
-        val proxiedAddress = InetAddress.getByName(proxiedUri.host)
-        if (proxiedAddress.isSiteLocalAddress || proxiedAddress.isLoopbackAddress) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .header(X_MRGRD56_PROXY_RESPONSE, requestIn.serverName)
-                .body(ofString("You're not allowed to access the local network of the server"))
+        if (!proxiedUri.host!!.equals("api.mrgrd56.ru", ignoreCase = true) && (proxiedUri.port != -1 && proxiedUri.port != 443)) {
+            val proxiedAddress = InetAddress.getByName(proxiedUri.host)
+
+            if (proxiedAddress.isSiteLocalAddress || proxiedAddress.isLoopbackAddress) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .header(X_MRGRD56_PROXY_RESPONSE, requestIn.serverName)
+                    .body(ofString("You're not allowed to access the local network of the server"))
+            }
         }
 
         return null
