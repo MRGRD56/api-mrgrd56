@@ -26,6 +26,7 @@ class RequestLoggingService {
             time = Instant.now(),
             method = request.method,
             path = request.requestURI,
+            query = request.queryString,
             headers = request.headerNames.asSequence().associateWith { request.getHeader(it) },
             body = body.toString()
         )
