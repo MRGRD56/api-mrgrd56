@@ -1,6 +1,13 @@
+FROM node:21-alpine3.17 as install-npm
+WORKDIR /src/main/resources/static
+COPY . .
+COPY src/main/resources/static/package.json .
+COPY src/main/resources/static/package-lock.json .
+RUN npm install
+
 FROM ubuntu:22.04 as pre-build-app
 WORKDIR /src/
-COPY . .
+COPY --from=install-npm . .
 RUN mkdir -p /poms && find . -name pom.xml -exec cp --parents {} /poms \;
 
 FROM maven:3.8.4-openjdk-17-slim as build-app
