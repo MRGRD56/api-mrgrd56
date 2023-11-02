@@ -1,18 +1,18 @@
 FROM node:21-alpine3.17 as install-npm
 WORKDIR /src/main/resources/static
-COPY . .
 COPY src/main/resources/static/package.json .
 COPY src/main/resources/static/package-lock.json .
 RUN npm install
 
 FROM ubuntu:22.04 as pre-build-app
 WORKDIR /src/
-COPY --from=install-npm . .
+COPY . .
 RUN mkdir -p /poms && find . -name pom.xml -exec cp --parents {} /poms \;
 
 FROM maven:3.8.4-openjdk-17-slim as build-app
 WORKDIR /build
 COPY --from=pre-build-app /poms/ ./
+COPY --from=install-npm /src/main/resources/static ./src/main/resources/static
 RUN mvn dependency:go-offline dependency:resolve-plugins -B
 ADD . .
 RUN mvn clean package
