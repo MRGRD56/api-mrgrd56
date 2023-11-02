@@ -52,4 +52,8 @@ class RequestLoggingService {
             .map { StringUtils.capitalize(it) }
             .joinToString("-")
     }
+
+    fun clearLoggedRequests(loggerId: String) {
+        requestsByLoggers[loggerId]?.clear()
+    }
 }

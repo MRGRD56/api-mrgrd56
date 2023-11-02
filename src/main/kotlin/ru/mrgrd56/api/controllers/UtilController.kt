@@ -84,4 +84,12 @@ class UtilController(
             "requests" to requestLoggingService.getLoggedRequests(loggerId)
         ))
     }
+
+    @RequestMapping(
+        value = ["log-request/{loggerId}/clear"],
+        method = [RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE]
+    )
+    fun clearLoggerRequests(@PathVariable loggerId: String) {
+        requestLoggingService.clearLoggedRequests(loggerId)
+    }
 }
