@@ -1,12 +1,15 @@
 package ru.mrgrd56.api.controllers
 
+import freemarker.template.Configuration
 import org.apache.commons.lang3.ObjectUtils
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import ru.mrgrd56.api.requestlogging.model.RequestLogDto
 import ru.mrgrd56.api.requestlogging.services.RequestLoggingService
+import ru.mrgrd56.api.utils.fill
 import ru.mrgrd56.api.utils.logger
 import java.util.*
 import javax.servlet.http.HttpServletRequest
@@ -14,7 +17,8 @@ import javax.servlet.http.HttpServletRequest
 @RestController
 @RequestMapping("util")
 class UtilController(
-    private val requestLoggingService: RequestLoggingService
+    private val requestLoggingService: RequestLoggingService,
+    private val freemarker: Configuration,
 ) {
     private val log = logger(this::class.java)
 
@@ -64,8 +68,20 @@ class UtilController(
         requestLoggingService.logRequest(loggerId, request)
     }
 
-    @GetMapping("log-request/{loggerId}/logs")
+    @GetMapping("log-request/{loggerId}/logs.json")
     fun getLoggedRequests(@PathVariable loggerId: String): List<RequestLogDto> {
         return requestLoggingService.getLoggedRequests(loggerId)
+    }
+
+    @GetMapping(
+        value = ["log-request/{loggerId}/logs"],
+        produces = [MediaType.TEXT_HTML_VALUE]
+    )
+    fun viewLoggedRequests(@PathVariable loggerId: String): String {
+        val template = freemarker.getTemplate("request-logs.html.ftl")
+
+        return template.fill(mapOf(
+            "requests" to requestLoggingService.getLoggedRequests(loggerId)
+        ))
     }
 }
