@@ -4,11 +4,7 @@ import org.apache.commons.lang3.ObjectUtils
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import ru.mrgrd56.api.requestlogging.model.RequestLogDto
 import ru.mrgrd56.api.requestlogging.services.RequestLoggingService
 import ru.mrgrd56.api.utils.logger
@@ -35,13 +31,13 @@ class UtilController(
         @RequestParam(required = false, defaultValue = "200") status: Int?,
         @RequestParam(required = false) header: List<String>?,
         @RequestParam(required = false) body: Any,
-        @RequestParam(defaultValue = "false") log: Boolean
+        @RequestParam(required = false) log: String?
     ): ResponseEntity<*> {
         this.log.info("getHttpResponse: status={}, headers={}, body={}", status, header, body)
 
-        if (log) {
+        if (!log.isNullOrBlank()) {
             try {
-                requestLoggingService.logRequest(request, body)
+                requestLoggingService.logRequest(log, request, body)
             } catch (e: Exception) {
                 this.log.warn("getHttpResponse: Unable to log a request: {}", e.message, e)
             }
@@ -63,13 +59,13 @@ class UtilController(
         return ResponseEntity(body, responseHeaders, responseStatus)
     }
 
-    @RequestMapping(value = ["log-request"])
-    fun logRequest(request: HttpServletRequest) {
-        requestLoggingService.logRequest(request)
+    @RequestMapping("log-request/{loggerId}")
+    fun logRequest(request: HttpServletRequest, @PathVariable loggerId: String) {
+        requestLoggingService.logRequest(loggerId, request)
     }
 
-    @GetMapping("log-request/logs")
-    fun getLoggedRequests(): List<RequestLogDto> {
-        return requestLoggingService.getLoggedRequests()
+    @GetMapping("log-request/{loggerId}/logs")
+    fun getLoggedRequests(@PathVariable loggerId: String): List<RequestLogDto> {
+        return requestLoggingService.getLoggedRequests(loggerId)
     }
 }
