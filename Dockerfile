@@ -13,8 +13,8 @@ FROM maven:3.8.4-openjdk-17-slim as build-app
 WORKDIR /build
 COPY --from=pre-build-app /poms/ ./
 RUN mvn dependency:go-offline dependency:resolve-plugins -B
-COPY --from=install-npm /src/main/resources/static/ ./src/main/resources/static/
 ADD . .
+COPY --from=install-npm /src/main/resources/static/ ./src/main/resources/static/
 RUN mvn clean package
 
 FROM ubuntu:22.04 as app
