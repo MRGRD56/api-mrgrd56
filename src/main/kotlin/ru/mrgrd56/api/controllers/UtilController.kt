@@ -41,7 +41,7 @@ class UtilController(
 
         if (!log.isNullOrBlank()) {
             try {
-                requestLoggingService.logRequest(log, request, body)
+                requestLoggingService.logRequest(log, request)
             } catch (e: Exception) {
                 this.log.warn("getHttpResponse: Unable to log a request: {}", e.message, e)
             }
