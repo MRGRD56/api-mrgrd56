@@ -44,7 +44,7 @@ class UtilController(
 
         if (!log.isNullOrBlank()) {
             try {
-                requestLoggingService.logRequest(log, request, keepCredentials, hideHeaders)
+                requestLoggingService.logRequest(log, request, keepPersonal, keepCredentials, hideHeaders)
             } catch (e: Exception) {
                 this.log.warn("getHttpResponse: Unable to log a request: {}", e.message, e)
             }
@@ -72,7 +72,7 @@ class UtilController(
                    @RequestParam(defaultValue = "true") keepPersonal: Boolean,
                    @RequestParam(defaultValue = "false") keepCredentials: Boolean,
                    @RequestParam(defaultValue = "") hideHeaders: Set<String>) {
-        requestLoggingService.logRequest(loggerId, request, keepCredentials, hideHeaders)
+        requestLoggingService.logRequest(loggerId, request, keepPersonal, keepCredentials, hideHeaders)
     }
 
     @GetMapping("log-request/{loggerId}/logs.json")
