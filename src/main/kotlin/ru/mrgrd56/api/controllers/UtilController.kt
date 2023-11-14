@@ -22,26 +22,28 @@ class UtilController(
 ) {
     private val log = logger(this::class.java)
 
-    @RequestMapping(value = ["delay"], method = [RequestMethod.GET, RequestMethod.POST])
+    @RequestMapping("delay", method = [RequestMethod.GET, RequestMethod.POST])
     @Throws(InterruptedException::class)
     fun delay(@RequestParam ms: Long): String {
         Thread.sleep(ms)
         return Objects.toString(Math.random())
     }
 
-    @RequestMapping(value = ["http-response"], method = [RequestMethod.GET, RequestMethod.POST])
+    @RequestMapping("http-response", method = [RequestMethod.GET, RequestMethod.POST])
     fun getHttpResponse(
         request: HttpServletRequest,
         @RequestParam(required = false, defaultValue = "200") status: Int?,
         @RequestParam(required = false) header: List<String>?,
         @RequestParam(required = false) body: Any,
-        @RequestParam(required = false) log: String?
+        @RequestParam(required = false) log: String?,
+        @RequestParam(name = "log.keepCredentials", defaultValue = "false") keepCredentials: Boolean,
+        @RequestParam(name = "log.hideHeaders", defaultValue = "") hideHeaders: Set<String>
     ): ResponseEntity<*> {
         this.log.info("getHttpResponse: status={}, headers={}, body={}", status, header, body)
 
         if (!log.isNullOrBlank()) {
             try {
-                requestLoggingService.logRequest(log, request)
+                requestLoggingService.logRequest(log, request, keepCredentials, hideHeaders)
             } catch (e: Exception) {
                 this.log.warn("getHttpResponse: Unable to log a request: {}", e.message, e)
             }
@@ -64,8 +66,11 @@ class UtilController(
     }
 
     @RequestMapping("log-request/{loggerId}")
-    fun logRequest(request: HttpServletRequest, @PathVariable loggerId: String) {
-        requestLoggingService.logRequest(loggerId, request)
+    fun logRequest(request: HttpServletRequest,
+                   @PathVariable loggerId: String,
+                   @RequestParam(defaultValue = "false") keepCredentials: Boolean,
+                   @RequestParam(defaultValue = "") hideHeaders: Set<String>) {
+        requestLoggingService.logRequest(loggerId, request, keepCredentials, hideHeaders)
     }
 
     @GetMapping("log-request/{loggerId}/logs.json")
@@ -73,8 +78,7 @@ class UtilController(
         return requestLoggingService.getLoggedRequests(loggerId)
     }
 
-    @GetMapping(
-        value = ["log-request/{loggerId}/logs"],
+    @GetMapping("log-request/{loggerId}/logs",
         produces = [MediaType.TEXT_HTML_VALUE]
     )
     fun viewLoggedRequests(@PathVariable loggerId: String): String {
@@ -85,8 +89,7 @@ class UtilController(
         ))
     }
 
-    @RequestMapping(
-        value = ["log-request/{loggerId}/clear"],
+    @RequestMapping("log-request/{loggerId}/clear",
         method = [RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE]
     )
     fun clearLoggerRequests(@PathVariable loggerId: String) {

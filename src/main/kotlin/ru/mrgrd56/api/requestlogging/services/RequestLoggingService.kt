@@ -11,21 +11,34 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import javax.servlet.http.HttpServletRequest
 
+private val SENSITIVE_HEADERS = setOf(
+    "authorization",
+    "cookie",
+    "proxy-authorization",
+    "set-cookie",
+    "x-api-key",
+    "x-auth-token",
+    "x-csrf-token",
+    "x-xsrf-token"
+)
+
 @Service
 class RequestLoggingService {
     private val log = logger(this::class.java)
 
     private val requestsByLoggers = ConcurrentHashMap<String, CircularFifoQueue<RequestLogDto>>()
 
-    fun logRequest(loggerId: String, request: HttpServletRequest) {
+    fun logRequest(loggerId: String, request: HttpServletRequest, keepCredentials: Boolean, hideHeaders: Set<String>) {
         logRequest(
             loggerId,
             request,
+            keepCredentials,
+            hideHeaders,
             body = request.inputStream.readNBytes(1 * 1024 * 1024).toString(StandardCharsets.UTF_8)
         )
     }
 
-    fun logRequest(loggerId: String, request: HttpServletRequest, body: Any?) {
+    fun logRequest(loggerId: String, request: HttpServletRequest, keepCredentials: Boolean, hideHeaders: Set<String>, body: Any?) {
         val requestLog = RequestLogDto(
             id = UUID.randomUUID(),
             time = Instant.now(),
@@ -33,7 +46,14 @@ class RequestLoggingService {
             path = request.requestURI,
             query = request.queryString,
             headers = request.headerNames.asSequence()
-                .associate { formatHeaderName(it) to request.getHeader(it) },
+                .associate {
+                    formatHeaderName(it) to
+                            if ((!keepCredentials && it in SENSITIVE_HEADERS) || it in hideHeaders) {
+                                "<HIDDEN>"
+                            } else {
+                                request.getHeader(it)
+                            }
+                },
             body = body.toString()
         )
 
