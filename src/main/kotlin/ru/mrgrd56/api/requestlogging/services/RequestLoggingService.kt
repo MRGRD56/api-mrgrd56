@@ -55,13 +55,13 @@ class RequestLoggingService {
                     formatHeaderName(it) to
                             when {
                                 !keepPersonal && it in PERSONAL_HEADERS -> {
-                                    "<HIDDEN>"
+                                    "[HIDDEN]"
                                 }
                                 !keepCredentials && it in SENSITIVE_HEADERS -> {
-                                    "<HIDDEN>"
+                                    "[HIDDEN]"
                                 }
                                 it in hideHeaders -> {
-                                    "<HIDDEN>"
+                                    "[HIDDEN]"
                                 }
                                 else -> {
                                     request.getHeader(it)
