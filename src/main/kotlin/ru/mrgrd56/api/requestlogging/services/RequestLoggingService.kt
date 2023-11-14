@@ -11,6 +11,14 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import javax.servlet.http.HttpServletRequest
 
+private val PERSONAL_HEADERS = setOf(
+    "referer",
+    "x-forwarded-for",
+    "x-real-ip",
+    "if-modified-since",
+    "if-none-match"
+)
+
 private val SENSITIVE_HEADERS = setOf(
     "authorization",
     "cookie",
@@ -28,17 +36,14 @@ class RequestLoggingService {
 
     private val requestsByLoggers = ConcurrentHashMap<String, CircularFifoQueue<RequestLogDto>>()
 
-    fun logRequest(loggerId: String, request: HttpServletRequest, keepCredentials: Boolean, hideHeaders: Set<String>) {
-        logRequest(
-            loggerId,
-            request,
-            keepCredentials,
-            hideHeaders,
-            body = request.inputStream.readNBytes(1 * 1024 * 1024).toString(StandardCharsets.UTF_8)
-        )
-    }
-
-    fun logRequest(loggerId: String, request: HttpServletRequest, keepCredentials: Boolean, hideHeaders: Set<String>, body: Any?) {
+    fun logRequest(
+        loggerId: String,
+        request: HttpServletRequest,
+        keepPersonal: Boolean,
+        keepCredentials: Boolean,
+        hideHeaders: Set<String>,
+        body: Any? = request.inputStream.readNBytes(1 * 1024 * 1024).toString(StandardCharsets.UTF_8)
+    ) {
         val requestLog = RequestLogDto(
             id = UUID.randomUUID(),
             time = Instant.now(),
@@ -48,10 +53,19 @@ class RequestLoggingService {
             headers = request.headerNames.asSequence()
                 .associate {
                     formatHeaderName(it) to
-                            if ((!keepCredentials && it in SENSITIVE_HEADERS) || it in hideHeaders) {
-                                "<HIDDEN>"
-                            } else {
-                                request.getHeader(it)
+                            when {
+                                !keepPersonal && it in PERSONAL_HEADERS -> {
+                                    "<HIDDEN>"
+                                }
+                                !keepCredentials && it in SENSITIVE_HEADERS -> {
+                                    "<HIDDEN>"
+                                }
+                                it in hideHeaders -> {
+                                    "<HIDDEN>"
+                                }
+                                else -> {
+                                    request.getHeader(it)
+                                }
                             }
                 },
             body = body.toString()

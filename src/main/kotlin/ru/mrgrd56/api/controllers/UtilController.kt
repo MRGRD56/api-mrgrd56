@@ -36,6 +36,7 @@ class UtilController(
         @RequestParam(required = false) header: List<String>?,
         @RequestParam(required = false) body: Any,
         @RequestParam(required = false) log: String?,
+        @RequestParam(name = "log.keepPersonal", defaultValue = "true") keepPersonal: Boolean,
         @RequestParam(name = "log.keepCredentials", defaultValue = "false") keepCredentials: Boolean,
         @RequestParam(name = "log.hideHeaders", defaultValue = "") hideHeaders: Set<String>
     ): ResponseEntity<*> {
@@ -68,6 +69,7 @@ class UtilController(
     @RequestMapping("log-request/{loggerId}")
     fun logRequest(request: HttpServletRequest,
                    @PathVariable loggerId: String,
+                   @RequestParam(defaultValue = "true") keepPersonal: Boolean,
                    @RequestParam(defaultValue = "false") keepCredentials: Boolean,
                    @RequestParam(defaultValue = "") hideHeaders: Set<String>) {
         requestLoggingService.logRequest(loggerId, request, keepCredentials, hideHeaders)
