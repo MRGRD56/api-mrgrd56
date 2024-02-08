@@ -2,6 +2,8 @@ package ru.mrgrd56.api.controllers
 
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.util.unit.DataSize
+import org.springframework.util.unit.DataUnit
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -14,12 +16,14 @@ const val BUFFER_SIZE = 8 * 1024
 @RequestMapping("mock/file")
 class MockFileController {
     @GetMapping("generated")
-    fun downloadGeneratedFile(@RequestParam size: Long): ResponseEntity<StreamingResponseBody> {
+    fun downloadGeneratedFile(@RequestParam size: String): ResponseEntity<StreamingResponseBody> {
+        val sizeBytes = DataSize.parse(size, DataUnit.BYTES).toBytes()
+
         val buffer = ByteArray(BUFFER_SIZE) { 0xff.toByte() }
 
         return StreamingResponseBody {
             it.use { outputStream ->
-                var bytesRemaining = size
+                var bytesRemaining = sizeBytes
 
                 while (bytesRemaining > 0) {
                     val bytesToWrite = BUFFER_SIZE.toLong().coerceAtMost(bytesRemaining).toInt()
@@ -31,7 +35,7 @@ class MockFileController {
         }.let {
             ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .contentLength(size)
+                .contentLength(sizeBytes)
                 .header("Content-Disposition", "attachment; filename=\"${System.currentTimeMillis()}.bin\"")
                 .body(it)
         }

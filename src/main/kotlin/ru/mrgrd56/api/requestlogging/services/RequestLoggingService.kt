@@ -85,6 +85,8 @@ class RequestLoggingService {
         return name.split('-').asSequence()
             .map { StringUtils.capitalize(it) }
             .joinToString("-")
+//        return name.split('-')
+//            .joinToString("-") { StringUtils.capitalize(it) }
     }
 
     fun clearLoggedRequests(loggerId: String) {
